@@ -1,3 +1,5 @@
+WIP, this is still not done, it is full of bugs
+
 nh doujin / galleries scrapper for python3+
 write a list of the numbah for the ones you want and it will download them in a 'sauce' folder
 something like:
