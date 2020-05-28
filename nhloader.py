@@ -1,8 +1,10 @@
 import os
+import sys
 import requests
 import shutil
 import json
 import re
+import time
 
 
 def get_request(link):
@@ -42,6 +44,8 @@ def download_picture(folder, link):
 def get_picture_link(link, page_nr):
     print("Getting picture link")
     rdata = get_request(link + "/" + page_nr + "/")
+    # if i don't have this sleep, i'll get a timeout from nginx
+    time.sleep(1)
     data = rdata.text
     base_split = '<img src="https://i.nhentai.net/galleries/'
     # this might have errors, the reason for try except
@@ -52,6 +56,8 @@ def get_picture_link(link, page_nr):
         print("with the following data: " + str(data))
         print("link is: " + link + ", page nr is: " + page_nr)
     
+    print("split_data is: ")
+    print(split_data)
     media_id = split_data.split("/")[0]
     
     # taking default jpg
@@ -115,24 +121,45 @@ def get_doujin_from_id(link, id):
 # this function will get the list from the file
 def get_numbah_list(fpath):
     print("getting the list number") # will read from file at some point
-    # not sure to use them as int or string
-    # but going for string right now
-    list = ["306493", "306495", "306496", "306502"]
+    list = []
+    try:
+        f = open(fpath, "r")
+        basic_list = f.readlines()
+        # removing \n endlines
+        for element in basic_list:
+            list.append(element.strip())
+        print("Going to try and download the following: ")
+        for x in list:
+            print(x)
+    except:
+        print("No file was given, exiting")
+        sys.exit(0)
     return list
     
 
-def main():
+def main(basic=None):
     nhlink = "https://nhentai.net/"
     # g comes from gallery, i just found out
     nhid = "g/"
     file_path = "numbahrs.txt"
-    list = get_numbah_list(file_path)
+    if basic is None:
+        list = get_numbah_list(file_path)
+    else:
+        list = [basic]
+
     for x in list:
         get_doujin_from_id(nhlink + nhid, x)
-    
-    print("Done Main")
+
+    print("Done downloading, hopefully it worked")
 
             
 if __name__ == "__main__":
     print("Started the nhscrapper")
-    main()
+    if len(sys.argv) > 1:
+        print("Please do not give weird first argument")
+        print("Using given argument to only get " \
+            + str(sys.argv[1]))
+        main(str(sys.argv[1]))
+    else:
+        print("Reading from file to get numbahrs")
+        main()
